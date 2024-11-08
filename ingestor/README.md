@@ -47,3 +47,12 @@ fastapi dev app/main.py
 pip install flake8
 flake8 main.py
 ```
+
+## Airflow OpenAPI python client
+
+The data ingestor uses an auto-generated Airflow python client:
+
+```bash
+pip install openapi-python-client
+openapi-python-client generate --path ../airflow/api.yaml --output-path ./app/airflow_client
+```
