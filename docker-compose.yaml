@@ -1,0 +1,8 @@
+include:
+  - airflow/docker-compose.yaml
+
+services:
+  ingestor:
+    build: ./ingestor
+    ports:
+      - "8000:8000"
