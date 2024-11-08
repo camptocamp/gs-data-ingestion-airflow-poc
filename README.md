@@ -15,7 +15,7 @@ Then run all services
 docker compose up -d
 ```
 
-Data ingestor API is on http://localhost:8080.
+Data ingestor API is on http://localhost:8000.
 
 Airflow UI is on http://localhost:8080.
 The default account is `airflow` / `airflow`
