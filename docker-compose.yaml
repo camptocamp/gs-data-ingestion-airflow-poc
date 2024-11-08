@@ -4,9 +4,9 @@ include:
 services:
   ingestor:
     build: ./ingestor
-    #    volumes:
-    #      - ./ingestor/app:/code/app
+    volumes:
+      - ./ingestor/app:/code/app
     environment:
       - AIRFLOW_URL=http://airflow-webserver:8080
     ports:
-      - "8000:8000"
+      - "8081:80"
