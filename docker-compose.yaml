@@ -2,8 +2,26 @@ include:
   - airflow/docker-compose.yaml
 
 services:
+  postgis:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: postgis
+      POSTGRES_PASSWORD: postgis
+      POSTGRES_DB: postgis
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgis" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    ports:
+      - "5433:5433"
+    command: -p 5433
+
   ingestor:
     build: ./ingestor
+    depends_on:
+      - postgis
     volumes:
       - ./ingestor/app:/code/app
     environment:
