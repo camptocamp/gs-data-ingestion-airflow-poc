@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OGRVRTDataSource>
+<OGRVRTLayer name="regions">
+<SrcDataSource relativeToVRT="1">/vsicurl/https://france-geojson.gregoiredavid.fr/repo/regions.geojson</SrcDataSource>
+<!--<SrcSql dialect="sqlite">SELECT * FROM 'regions'</SrcSql>-->
+<SrcLayer>regions</SrcLayer>
+<Field name="code" src="code" type="String" />
+<Field name="nom" src="nom" type="String" />
+</OGRVRTLayer>
+</OGRVRTDataSource>

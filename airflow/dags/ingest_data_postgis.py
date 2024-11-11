@@ -1,6 +1,8 @@
 import logging
 import os
+import requests
 from airflow.decorators import task, dag
+from airflow.operators.python import get_current_context
 from datetime import datetime
 from ogr2vrt_simple import HttpSource, FileSource
 
@@ -57,6 +59,43 @@ def load_vrt_in_postgis(vrt_path):
     task_logger.info("Data successfully loaded into PostGIS")
 
 
+@task(
+    doc_md="""
+This task will create a metadata in GeoNetwork for the ingested dataset
+"""
+)
+def create_metadata():
+    title = get_current_context()["ti"]["datasource_title"]
+    task_logger.info(f"Creating metadata with title: {title}")
+
+    record_xml = f"""
+<simpledc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://localhost:8080/geonetwork/xml/schemas/dublin-core/schema.xsd">
+    <dc:title>{title}</dc:title>
+    <dc:creator/>
+    <dc:subject/>
+    <dc:subject/>
+    <dc:description/>
+    <dc:publisher/>
+    <dc:type/>
+    <dc:format>text/plain</dc:format>
+    <dc:language>eng</dc:language>
+    <dc:coverage>North 90, South -90, East -180, West 180. Global</dc:coverage>
+    <dc:rights/>
+    <dct:created/>
+    <dct:dateSubmitted/>
+    <dct:modified>2024-11-11T19:48:28.998379Z</dct:modified>
+    <dc:identifier>_empty_</dc:identifier>
+</simpledc>
+"""
+    response = requests.post("http://geonetwork:8080/api/records?metadataType=METADATA&uuidProcessing=GENERATEUUID",
+                             data=record_xml,
+                             headers={"Content-Type": "application/xml"},
+                             )
+    task_logger.info(response)
+
+    task_logger.info("Data successfully loaded into PostGIS")
+
+
 @dag(
     schedule=None,
     catchup=False,
@@ -71,7 +110,7 @@ Loads a dataset described by the `datasource_uri` parameter into a PostgreSQL da
 def ingest_data_postgis():
     # extractTask = create_vrt_from_file()
     # loadTask = load_vrt_in_postgis()
-    load_vrt_in_postgis(create_vrt_from_file())
+    load_vrt_in_postgis(create_vrt_from_file()) >> create_metadata()
 
 
 ingest_data_postgis_dag = ingest_data_postgis()
