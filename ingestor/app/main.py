@@ -3,11 +3,11 @@ import logging
 import os
 from base64 import b64encode
 from fastapi import FastAPI
-from ogr2vrt_simple import HttpSource, FileSource
 
 from .airflow_client.airflow_api_stable_client import AuthenticatedClient
 from .airflow_client.airflow_api_stable_client.api.dag import get_dags
-from .airflow_client.airflow_api_stable_client.models import DAGCollection
+from .airflow_client.airflow_api_stable_client.api.dag_run import post_dag_run
+from .airflow_client.airflow_api_stable_client.models import DAGCollection, DAGRun, DAGRunConf
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -43,36 +43,14 @@ def read_dags():
         return {"dags": dag_ids}
 
 
-@app.get('/vrt')
-def generate_vrt(source: str):
-    config = {
-        "filename": "",
-        "relative_to_file": True,
-        "db_friendly": True,
-        "no_vsicurl": False,
-        "data_formats": "",
-        "template": "templates/vrt.j2",
-    }
-    data_source = source
-    vrt_factory = None
-    if source.startswith("http"):
-        vrt_factory = HttpSource(data_source, config)
-    else:
-        vrt_factory = FileSource(data_source, config)
-    vrt_xml = vrt_factory.build_vrt()
-    if vrt_xml:
-        with open("/tmp/current.vrt", "w") as f:
-            f.write(vrt_xml)
-            logger.info(f"VRT file written to /tmp/current.vrt")
-    else:
-        logger.error("error build VRT file")
-        return "error"
-
-    # convert VRT to PostGIS
-    os.system(
-        'ogr2ogr -f PostgreSQL PG:"dbname=postgis host=postgis port=5433 user=postgis password=postgis active_schema=public" /tmp/current.vrt')
-
-    logger.info("Data successfully loaded into PostGIS:")
-    logger.info(vrt_xml)
+@app.get('/import')
+def import_datasource(source: str):
+    with get_client() as client:
+        conf = DAGRunConf()
+        conf["datasource_uri"] = source
+        post_dag_run.sync(client=client, dag_id="ingest_data_postgis", body=DAGRun(
+            conf=conf,
+            note="this run was generated automatically by the data ingestor"
+        ))
 
     return {"status": "success"}
