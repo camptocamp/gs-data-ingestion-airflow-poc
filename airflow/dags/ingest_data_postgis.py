@@ -16,6 +16,9 @@ This task creates a temporary VRT file out of an external data source.
 )
 def create_vrt_from_file(params):
     datasource = params["datasource_uri"]
+    if (not datasource):
+        raise AirflowException('No datasource URI provided')
+
     task_logger.info(f"Creating VRT from {datasource}")
     config = {
         "filename": "",
@@ -58,7 +61,8 @@ def load_vrt_in_postgis(vrt_path):
     schedule=None,
     catchup=False,
     params={
-        "datasource_uri": ""
+        "datasource_uri": "",
+        "datasource_title": "Unknown title"
     },
     doc_md="""
 Loads a dataset described by the `datasource_uri` parameter into a PostgreSQL database

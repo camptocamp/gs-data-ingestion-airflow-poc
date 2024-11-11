@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+  <title>Data Ingestor</title>
+  <meta charset="utf-8"/>
+</head>
+<body>
+<p>Hello world!</p>
+<p>Enter a URL and click "upload"; the dataset will be loaded in the database and a metadata record will be created.</p>
+<p>
+  <input type="text" placeholder="Enter the URL to a dataset here" id="data-uri-input"/>
+  <input type="text" placeholder="Enter the name of the dataset here" id="title-input"/>
+  <button type="button" id="upload-btn">Upload</button>
+  <button type="button" id="inspect-btn">🔍 Inspect</button>
+</p>
+<p><span id="upload-status"></span></p>
+<p>
+  <a href="/docs">API docs</a>
+</p>
+<script src="./main.js"></script>
+</body>
