@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from .airflow_client.airflow_api_stable_client import AuthenticatedClient
 from .airflow_client.airflow_api_stable_client.api.dag import get_dags
-from .airflow_client.airflow_api_stable_client.api.dag_run import post_dag_run
+from .airflow_client.airflow_api_stable_client.api.dag_run import post_dag_run, get_dag_run
 from .airflow_client.airflow_api_stable_client.models import DAGCollection, DAGRun, DAGRunConf
 
 logging.basicConfig()
@@ -45,12 +45,16 @@ def read_dags():
 
 @app.get('/import')
 def import_datasource(source: str):
+    dag_id = "ingest_data_postgis"
     with get_client() as client:
         conf = DAGRunConf()
         conf["datasource_uri"] = source
-        post_dag_run.sync(client=client, dag_id="ingest_data_postgis", body=DAGRun(
+        dag_run = post_dag_run.sync(client=client, dag_id=dag_id, body=DAGRun(
             conf=conf,
             note="this run was generated automatically by the data ingestor"
         ))
+        dag_run_id = dag_run.dag_run_id
+        while dag_run.state == "running" or dag_run.state == "queued":
+            dag_run = get_dag_run.sync(client=client, dag_id=dag_id, dag_run_id=dag_run_id)
 
-    return {"status": "success"}
+    return {"result": dag_run.to_dict()}
