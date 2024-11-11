@@ -1,6 +1,7 @@
 import logging
 import os
 from airflow.decorators import task, dag
+from datetime import datetime
 from ogr2vrt_simple import HttpSource, FileSource
 
 from airflow import AirflowException
@@ -28,7 +29,8 @@ def create_vrt_from_file(params):
     else:
         vrt_factory = FileSource(datasource, config)
     vrt_xml = vrt_factory.build_vrt()
-    vrt_path = "/tmp/current.vrt"
+    timestamp = datetime.timestamp(datetime.now())
+    vrt_path = f"/tmp/{timestamp}.xml"
     if vrt_xml:
         with open(vrt_path, "w") as f:
             f.write(vrt_xml)
